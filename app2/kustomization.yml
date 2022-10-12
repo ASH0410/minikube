@@ -1,0 +1,11 @@
+#  Apply resources from a directory containing kustomization.yaml - e.g. dir/kustomization.yaml
+#  kubectl apply -k mongo/
+
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - app2-Deployment.yml
+  - app2-Service.yml
+  - app2-Ingress.yml
