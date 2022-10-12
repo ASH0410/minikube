@@ -14,10 +14,10 @@ spec:
     spec:    
       containers:
       - name: app2
-        image: okteto/sample-app:latest
+        image: d4cregistry/flask-app2:latest
         resources:
           limits:
             memory: "128Mi"
             cpu: "500m"
         ports:
-        - containerPort: 8090
+        - containerPort: 5000
