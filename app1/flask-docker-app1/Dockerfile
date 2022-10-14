@@ -15,4 +15,4 @@ COPY . .
 EXPOSE 5000
 
 # Define our command to be run when launching the container
-CMD ["python3", "app.py"]
+CMD ["python", "app.py"]
