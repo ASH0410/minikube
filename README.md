@@ -292,15 +292,19 @@ $ sudo ssh -i **`kubernetes.pem`** -L 0.0.0.0:80:192.168.49.2:80 -f -N ec2-user@
 
 <br/>
 
-$ http://**`3.80.55.235`**/app1
+### Hit the below URLs from your browser
+
+<br/>
+
+http://**`3.80.55.235`**/app1
     <h2>Hello Minikube,</h2><h3>Welcome to Flask-App-ONE !!</h3><b>Pod-Hostname:</b> app1-54b94f8dcf-q9vj7<br/>
 
 <br/>
 
-$ http://**`3.80.55.235`**/app2
+http://**`3.80.55.235`**/app2
    <h2>Hello Minikube,</h2><h3>Welcome to Flask-App-TWO !!</h3><b>Pod-Hostname:</b> app2-669fcd9f48-9bv28<br/>
 
-
+<br/>
 
 *********************************************************
 Update Applications & Build New Applications Docker Images
