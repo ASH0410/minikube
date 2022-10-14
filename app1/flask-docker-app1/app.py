@@ -1,25 +1,16 @@
 from flask import Flask
-from redis import Redis, RedisError
 import os
 import socket
 
-# Connect to Redis
-redis = Redis(host="redis", db=0)
-
 app = Flask(__name__)
 
-
+# Application will response to HTTP `/` request.
 @app.route("/")
 def hello():
-    try:
-        visits = redis.incr('counter')
-    except RedisError:
-        visits = "<i>cannot connect to Redis, counter disabled</i>"
-
-    html = "<h3>Hello {name}!</h3>" \
-           "<b>Hostname:</b> {hostname}<br/>" \
-           "<b>Visits:</b> {visits}"
-    return html.format(name=os.getenv('NAME', "world"), hostname=socket.gethostname(), visits=visits)
+    html = "<h2>Hello {name},</h2>" \
+           "<h3>Welcome to Flask-App-ONE !!</h3>" \ 
+           "<b>Pod-Hostname:</b> {hostname}<br/>"
+    return html.format(name=os.getenv('NAME'), hostname=socket.gethostname())
 
 
 if __name__ == "__main__":
