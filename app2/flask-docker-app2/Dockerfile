@@ -15,7 +15,7 @@ COPY . .
 EXPOSE 5000
 
 # Define Environement
-ENV Minikube
+ENV NAME=Minikube
 
 # Define our command to be run when launching the container
 CMD ["python", "app.py"]
