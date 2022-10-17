@@ -90,26 +90,33 @@ Start Configuration
 $ git clone https://github.com/ASH0410/minikube.git
 
 ### File Structure
-    minikube/
-    ├── app1
-    │   ├── app1-Deployment.yml
-    │   ├── app1-Ingress.yml
-    │   ├── app1-Service.yml
-    │   ├── flask-docker-app1
-    │   │   ├── app.py
-    │   │   ├── Dockerfile
-    │   │   └── requirements.txt
-    │   └── kustomization.yml
-    ├── app2
-    │   ├── app2-Deployment.yml
-    │   ├── app2-Ingress.yml
-    │   ├── app2-Service.yml
-    │   ├── flask-docker-app2
-    │   │   ├── app.py
-    │   │   ├── Dockerfile
-    │   │   └── requirements.txt
-    │   └── kustomization.yml
-    └── kubernetes.pem
+	minikube/
+	├── app1
+	│   ├── app1-Deployment.yml
+	│   ├── app1-Ingress.yml
+	│   ├── app1-Service.yml
+	│   ├── default-backend-Deployment.yml
+	│   ├── default-backend-Service.yml
+	│   ├── default-flask-backend
+	│   │   ├── app.py
+	│   │   ├── Dockerfile
+	│   │   └── requirements.txt
+	│   ├── flask-docker-app1
+	│   │   ├── app.py
+	│   │   ├── Dockerfile
+	│   │   └── requirements.txt
+	│   └── kustomization.yml
+	├── app2
+	│   ├── app2-Deployment.yml
+	│   ├── app2-Ingress.yml
+	│   ├── app2-Service.yml
+	│   ├── flask-docker-app2
+	│   │   ├── app.py
+	│   │   ├── Dockerfile
+	│   │   └── requirements.txt
+	│   └── kustomization.yml
+	├── kubernetes.pem
+	└── README.md
 
 
 
