@@ -9,3 +9,5 @@ resources:
   - app1-Deployment.yml
   - app1-Service.yml
   - app1-Ingress.yml
+  - default-backend-Service.yml
+  - default-backend-Deployment.yml

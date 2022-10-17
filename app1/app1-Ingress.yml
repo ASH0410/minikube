@@ -2,11 +2,17 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: app1-ingress
+  namespace: app1-ns
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /
   labels:
     name: app1-ingress
 spec:
+  defaultBackend:
+    service:
+      name: default-backend-service
+      port:
+        number: 80
   rules:
   #- host: flask.com
   - http:

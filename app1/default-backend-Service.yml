@@ -1,13 +1,13 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: app2-service
-  namespace: app2-ns
+  name: default-backend-service
+  namespace: app1-ns
 spec:
   #type: LoadBalancer
   selector:
-    app: app2
+    app: default
   ports:
   - port: 80
     targetPort: 5000
-    #nodePort: 30090
+    #nodePort: 30080
