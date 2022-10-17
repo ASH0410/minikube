@@ -147,6 +147,23 @@ Output || <br/>
     Kubernetes control plane is running at https://192.168.49.2:8443
     CoreDNS is running at https://192.168.49.2:8443/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
 
+$ kubectl create namespace app1-ns && kubectl create namespaces app2-ns <br/>
+$ kubectl get ns
+
+Output || <br/>
+
+	NAME              STATUS   AGE
+	app1-ns           Active   126m
+	app2-ns           Active   126m
+	default           Active   138m
+	ingress-nginx     Active   121m
+	kube-node-lease   Active   138m
+	kube-public       Active   138m
+	kube-system       Active   138m
+
+**NOTE:**<br/>
+- Use above **`NAMESPACE`** in respective app1 and app2 configuration files
+- Using **`NAMESPACE`**, we can effectivly manage netowrk policy separately for each appliaction
 
 
 $ kubectl apply -k app1/
@@ -166,39 +183,48 @@ Output || <br/>
     ingress.networking.k8s.io/app2-ingress created
 
 
-$ kubectl get all -o wide
+$ kubectl get all -o wide -n=app1-ns
 
 Output ||  <br/>
 
 
-	NAME                        READY   STATUS    RESTARTS   AGE   IP           NODE       NOMINATED NODE   READINESS GATES
-	pod/app1-54b94f8dcf-fjcgg   1/1     Running   0          93s   172.17.0.4   minikube   <none>           <none>
-	pod/app1-54b94f8dcf-qz4tv   1/1     Running   0          93s   172.17.0.3   minikube   <none>           <none>
-	pod/app2-669fcd9f48-qngzr   1/1     Running   0          80s   172.17.0.6   minikube   <none>           <none>
-	pod/app2-669fcd9f48-rrmnb   1/1     Running   0          80s   172.17.0.5   minikube   <none>           <none>
+	NAME                                   READY   STATUS    RESTARTS   AGE   IP           NODE       NOMINATED NODE   READINESS GATES
+	pod/app1-54b94f8dcf-5nktq              1/1     Running   0          29m   172.17.0.4   minikube   <none>           <none>
+	pod/app1-54b94f8dcf-lmlvl              1/1     Running   0          29m   172.17.0.3   minikube   <none>           <none>
+	pod/default-backend-597d886bcc-hsv97   1/1     Running   0          29m   172.17.0.7   minikube   <none>           <none>
+	pod/default-backend-597d886bcc-v5d82   1/1     Running   0          29m   172.17.0.9   minikube   <none>           <none>
 
-	NAME                   TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)   AGE     SELECTOR
-	service/app1-service   ClusterIP   10.96.50.13      <none>        80/TCP    93s     app=app1
-	service/app2-service   ClusterIP   10.102.228.109   <none>        80/TCP    80s     app=app2
-	service/kubernetes     ClusterIP   10.96.0.1        <none>        443/TCP   3m10s   <none>
+	NAME                              TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)   AGE   SELECTOR
+	service/app1-service              ClusterIP   10.97.182.213   <none>        80/TCP    29m   app=app1
+	service/default-backend-service   ClusterIP   10.107.237.3    <none>        80/TCP    29m   app=default
+	service/default-http-backend      ClusterIP   10.108.49.139   <none>        80/TCP    97m   app=app1
 
-	NAME                   READY   UP-TO-DATE   AVAILABLE   AGE   CONTAINERS   IMAGES                          SELECTOR
-	deployment.apps/app1   2/2     2            2           93s   app1         d4cregistry/flask-app1:latest   app=app1
-	deployment.apps/app2   2/2     2            2           80s   app2         d4cregistry/flask-app2:latest   app=app2
+	NAME                              READY   UP-TO-DATE   AVAILABLE   AGE   CONTAINERS   IMAGES                                     SELECTOR
+	deployment.apps/app1              2/2     2            2           29m   app1         d4cregistry/flask-app1:latest              app=app1
+	deployment.apps/default-backend   2/2     2            2           29m   default      d4cregistry/default-flask-backend:latest   app=default
 
-	NAME                              DESIRED   CURRENT   READY   AGE   CONTAINERS   IMAGES                          SELECTOR
-	replicaset.apps/app1-54b94f8dcf   2         2         2       93s   app1         d4cregistry/flask-app1:latest   app=app1,pod-template-hash=54b94f8dcf
-	replicaset.apps/app2-669fcd9f48   2         2         2       80s   app2         d4cregistry/flask-app2:latest   app=app2,pod-template-hash=669fcd9f48
-
-
-$ kubectl get ingress
-
-Output || <br/>
+	NAME                                         DESIRED   CURRENT   READY   AGE   CONTAINERS   IMAGES                                     SELECTOR
+	replicaset.apps/app1-54b94f8dcf              2         2         2       29m   app1         d4cregistry/flask-app1:latest              app=app1,pod-template-hash=54b94f8dcf
+	replicaset.apps/default-backend-597d886bcc   2         2         2       29m   default      d4cregistry/default-flask-backend:latest   app=default,pod-template-hash=597d886bcc
 
 
-    NAME           CLASS    HOSTS   ADDRESS   PORTS   AGE
-    app1-ingress   <none>   *                 80      3m39s
-    app2-ingress   <none>   *                 80      3m26s
+$ kubectl get all -o wide -n=app2-ns
+
+Output ||  <br/>
+
+
+	NAME                        READY   STATUS    RESTARTS   AGE    IP           NODE       NOMINATED NODE   READINESS GATES
+	pod/app2-669fcd9f48-qzgr5   1/1     Running   0          124m   172.17.0.6   minikube   <none>           <none>
+	pod/app2-669fcd9f48-zsg9j   1/1     Running   0          124m   172.17.0.5   minikube   <none>           <none>
+
+	NAME                   TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)   AGE    SELECTOR
+	service/app2-service   ClusterIP   10.100.215.128   <none>        80/TCP    124m   app=app2
+
+	NAME                   READY   UP-TO-DATE   AVAILABLE   AGE    CONTAINERS   IMAGES                          SELECTOR
+	deployment.apps/app2   2/2     2            2           124m   app2         d4cregistry/flask-app2:latest   app=app2
+
+	NAME                              DESIRED   CURRENT   READY   AGE    CONTAINERS   IMAGES                          SELECTOR
+	replicaset.apps/app2-669fcd9f48   2         2         2       124m   app2         d4cregistry/flask-app2:latest   app=app2,pod-template-hash=669fcd9f48
 
 
 $ minikube addons enable ingress
@@ -224,55 +250,67 @@ Output || <br/>
         - Using image gcr.io/k8s-minikube/minikube-ingress-dns:0.0.2
       * The 'ingress-dns' addon is enabled
 
-$ kubectl get ingress
+
+$ kubectl get ing -n=app1-ns
 
 Output || <br/>
 
 
-      NAME           CLASS    HOSTS   ADDRESS        PORTS   AGE
-      app1-ingress   <none>   *       192.168.49.2   80      5m59s
-      app2-ingress   <none>   *       192.168.49.2   80      5m46s
+	NAME           CLASS   HOSTS   ADDRESS        PORTS   AGE
+	app1-ingress   nginx   *       192.168.49.2   80      30m
 
-
-$ kubectl describe ingress
+$ kubectl get ing -n=app2-ns
 
 Output || <br/>
 
 
-      Name:             app1-ingress
-      Labels:           name=app1-ingress
-      Namespace:        default
-      Address:          192.168.49.2
-      Ingress Class:    <none>
-      Default backend:  <default>
-      Rules:
-        Host        Path  Backends
-        ----        ----  --------
-        *
-              /app1   app1-service:80 (172.17.0.3:5000,172.17.0.4:5000)
-      Annotations:  nginx.ingress.kubernetes.io/rewrite-target: /
-      Events:
-        Type    Reason  Age                  From                      Message
-        ----    ------  ----                 ----                      -------
-        Normal  Sync    92s (x2 over 2m32s)  nginx-ingress-controller  Scheduled for sync
+	NAME           CLASS   HOSTS   ADDRESS        PORTS   AGE
+	app2-ingress   nginx   *       192.168.49.2   80      123m
 
 
-      Name:             app2-ingress
-      Labels:           name=app2-ingress
-      Namespace:        default
-      Address:          192.168.49.2
-      Ingress Class:    <none>
-      Default backend:  <default>
-      Rules:
-        Host        Path  Backends
-        ----        ----  --------
-        *
-              /app2   app2-service:80 (172.17.0.5:5000,172.17.0.6:5000)
-      Annotations:  nginx.ingress.kubernetes.io/rewrite-target: /
-      Events:
-        Type    Reason  Age                  From                      Message
-        ----    ------  ----                 ----                      -------
-        Normal  Sync    92s (x2 over 2m32s)  nginx-ingress-controller  Scheduled for sync
+$ kubectl describe ingress -n=app1-ns
+
+Output || <br/>
+
+
+	Name:             app1-ingress
+	Labels:           name=app1-ingress
+	Namespace:        app1-ns
+	Address:          192.168.49.2
+	Ingress Class:    nginx
+	**Default backend:  default-backend-service:80 (172.17.0.7:5000,172.17.0.9:5000)**
+	Rules:
+	  Host        Path  Backends
+	  ----        ----  --------
+	  *
+		      /app1   app1-service:80 (172.17.0.3:5000,172.17.0.4:5000)
+	Annotations:  nginx.ingress.kubernetes.io/rewrite-target: /
+	Events:
+	  Type    Reason  Age                From                      Message
+	  ----    ------  ----               ----                      -------
+	  Normal  Sync    35m (x2 over 36m)  nginx-ingress-controller  Scheduled for sync
+
+
+
+$ kubectl describe ingress -n=app2-ns
+
+Output || <br/>
+
+
+	Name:             app2-ingress
+	Labels:           name=app2-ingress
+	Namespace:        app2-ns
+	Address:          192.168.49.2
+	Ingress Class:    nginx
+	Default backend:  <default>
+	Rules:
+	  Host        Path  Backends
+	  ----        ----  --------
+	  *
+		      /app2   app2-service:80 (172.17.0.5:5000,172.17.0.6:5000)
+	Annotations:  nginx.ingress.kubernetes.io/rewrite-target: /
+	Events:       <none>
+
 
 
 
@@ -280,12 +318,12 @@ Output || <br/>
 $ curl http://192.168.49.2/app1
 
 Output || <br/>
-    ``<h2>Hello Minikube,</h2><h3>Welcome to Flask-App-ONE !!</h3><b>Pod-Hostname:</b> app1-54b94f8dcf-q9vj7<br/>``
+    ``<h2>Hello Minikube,</h2><h3>Welcome to Flask-App-ONE !!</h3><b>Pod-Hostname:</b> app1-54b94f8dcf-5nktq<br/>``
 
 $ curl -I http://192.168.49.2/app2
 
 Output || <br/>
-    ``<h2>Hello Minikube,</h2><h3>Welcome to Flask-App-TWO !!</h3><b>Pod-Hostname:</b> app2-669fcd9f48-9bv28<br/>``
+    ``<h2>Hello Minikube,</h2><h3>Welcome to Flask-App-TWO !!</h3><b>Pod-Hostname:</b> app2-669fcd9f48-qzgr5<br/>``
 
 
 **NOTE:**
@@ -303,13 +341,17 @@ $ sudo ssh -i **`kubernetes.pem`** -L 0.0.0.0:80:192.168.49.2:80 -f -N ec2-user@
 
 <br/>
 
-http://**`3.80.55.235`**/app1
-    <h2>Hello Minikube,</h2><h3>Welcome to Flask-App-ONE !!</h3><b>Pod-Hostname:</b> app1-54b94f8dcf-q9vj7<br/>
+**`http://3.80.55.235/`**
 
+<h2>Hello Minikube,</h2><h3>This is Default-Page, using below convention to go the Application</h3><h4>Go to Flask-App-ONE : http://ip-address/app1</h4><h4>Go to Flask-App-TWO : http://ip-address/app2</h4><br/><b>Pod-Hostname:</b> default-backend-597d886bcc-hsv97<br/>
 <br/>
 
-http://**`3.80.55.235`**/app2
-   <h2>Hello Minikube,</h2><h3>Welcome to Flask-App-TWO !!</h3><b>Pod-Hostname:</b> app2-669fcd9f48-9bv28<br/>
+**`http://3.80.55.235/app1`**
+    <h2>Hello Minikube,</h2><h3>Welcome to Flask-App-ONE !!</h3><b>Pod-Hostname:</b> app1-54b94f8dcf-5nktq<br/>
+<br/>
+
+**`http://3.80.55.235/app2`**
+   <h2>Hello Minikube,</h2><h3>Welcome to Flask-App-TWO !!</h3><b>Pod-Hostname:</b> app2-669fcd9f48-qzgr5<br/>
 
 <br/>
 
