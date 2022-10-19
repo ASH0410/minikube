@@ -23,7 +23,7 @@ Installation on Amazon Linux EC2 Instances
 minikube version: 1.27.1 <br/>
 kubectl version	: 1.25.3 <br/>
 docker version	: 20.10.17 <br/>
-git version		: 2.37.1 <br/>
+git version	: 2.37.1 <br/>
 
 ------------------
 Installation Steps
@@ -90,33 +90,43 @@ Start Configuration
 $ git clone https://github.com/ASH0410/minikube.git
 
 ### File Structure
-	minikube/
-	├── app1
-	│   ├── app1-Deployment.yml
-	│   ├── app1-Ingress.yml
-	│   ├── app1-Service.yml
-	│   ├── default-backend-Deployment.yml
-	│   ├── default-backend-Service.yml
-	│   ├── default-flask-backend
-	│   │   ├── app.py
-	│   │   ├── Dockerfile
-	│   │   └── requirements.txt
-	│   ├── flask-docker-app1
-	│   │   ├── app.py
-	│   │   ├── Dockerfile
-	│   │   └── requirements.txt
-	│   └── kustomization.yml
-	├── app2
-	│   ├── app2-Deployment.yml
-	│   ├── app2-Ingress.yml
-	│   ├── app2-Service.yml
-	│   ├── flask-docker-app2
-	│   │   ├── app.py
-	│   │   ├── Dockerfile
-	│   │   └── requirements.txt
-	│   └── kustomization.yml
-	├── kubernetes.pem
-	└── README.md
+	    minikube
+	    ├── app1
+	    │   ├── app1-CronJob.yml
+	    │   ├── app1-Deployment.yml
+	    │   ├── app1-HPA.yml
+	    │   ├── app1-Ingress.yml
+	    │   ├── app1-NS.yml
+	    │   ├── app1-RBAC.yaml
+	    │   ├── app1-RBAC.yml
+	    │   ├── app1-Service.yml
+	    │   ├── default-backend-Deployment.yml
+	    │   ├── default-backend-Service.yml
+	    │   ├── default-flask-backend
+	    │   │   ├── app.py
+	    │   │   ├── Dockerfile
+	    │   │   └── requirements.txt
+	    │   ├── flask-docker-app1
+	    │   │   ├── app.py
+	    │   │   ├── Dockerfile
+	    │   │   └── requirements.txt
+	    │   └── kustomization.yml
+	    ├── app2
+	    │   ├── app2-CronJob.yml
+	    │   ├── app2-Deployment.yml
+	    │   ├── app2-HPA.yml
+	    │   ├── app2-Ingress.yml
+	    │   ├── app2-NS.yml
+	    │   ├── app2-RBAC.yml
+	    │   ├── app2-Service.yml
+	    │   ├── flask-docker-app2
+	    │   │   ├── app.py
+	    │   │   ├── Dockerfile
+	    │   │   └── requirements.txt
+	    │   └── kustomization.yml
+	    ├── kubernetes.pem
+	    └── README.md
+
 
 
 
@@ -147,7 +157,39 @@ Output || <br/>
     Kubernetes control plane is running at https://192.168.49.2:8443
     CoreDNS is running at https://192.168.49.2:8443/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
 
-$ kubectl create namespace app1-ns && kubectl create namespaces app2-ns <br/>
+$ kubectl apply -k app1/
+
+Output || <br/>
+
+	namespace/app1-ns created
+	serviceaccount/app1-sa-cron-runner created
+	role.rbac.authorization.k8s.io/app1-cron-runner created
+	rolebinding.rbac.authorization.k8s.io/app1-cron-runner created
+	service/app1-service created
+	service/default-backend-service created
+	deployment.apps/app1 created
+	deployment.apps/default-backend created
+	cronjob.batch/app1-pod-scale-down-job created
+	cronjob.batch/app1-pod-scale-up-job created
+	horizontalpodautoscaler.autoscaling/app1-hpa created
+	ingress.networking.k8s.io/app1-ingress created
+	
+$ kubectl apply -k app2/
+
+Output || <br/>
+
+	namespace/app2-ns created
+	serviceaccount/app2-sa-cron-runner created
+	role.rbac.authorization.k8s.io/app2-cron-runner created
+	rolebinding.rbac.authorization.k8s.io/app2-cron-runner created
+	service/app2-service created
+	deployment.apps/app2 created
+	cronjob.batch/app2-pod-scale-down-job created
+	cronjob.batch/app2-pod-scale-up-job created
+	horizontalpodautoscaler.autoscaling/app2-hpa created
+	ingress.networking.k8s.io/app2-ingress created
+
+
 $ kubectl get ns
 
 Output || <br/>
@@ -162,50 +204,57 @@ Output || <br/>
 	kube-system       Active   138m
 
 **NOTE:**<br/>
-- Use above **`NAMESPACE`** in respective app1 and app2 configuration files
 - Using **`NAMESPACE`**, we can effectivly manage netowrk policy separately for each appliaction
 
-
-$ kubectl apply -k app1/
-
-Output || <br/>
-
-    service/app1-service created
-    deployment.apps/app1 created
-    ingress.networking.k8s.io/app1-ingress created
-	
-$ kubectl apply -k app2/
+$ minikube addons enable metrics-server
 
 Output || <br/>
 
-    service/app2-service created
-    deployment.apps/app2 created
-    ingress.networking.k8s.io/app2-ingress created
+	* metrics-server is an addon maintained by Kubernetes. For any concerns contact minikube on GitHub.
+	You can view the list of minikube maintainers at: https://github.com/kubernetes/minikube/blob/master/OWNERS
+	  - Using image k8s.gcr.io/metrics-server/metrics-server:v0.6.1
+	* The 'metrics-server' addon is enabled
 
+**NOTE:**<br/>
+- Enable **`metrics-server`** to get metrics data from Pods, otherwise targets:unknown
 
 $ kubectl get all -o wide -n=app1-ns
 
 Output ||  <br/>
 
 
-	NAME                                   READY   STATUS    RESTARTS   AGE   IP           NODE       NOMINATED NODE   READINESS GATES
-	pod/app1-54b94f8dcf-5nktq              1/1     Running   0          29m   172.17.0.4   minikube   <none>           <none>
-	pod/app1-54b94f8dcf-lmlvl              1/1     Running   0          29m   172.17.0.3   minikube   <none>           <none>
-	pod/default-backend-597d886bcc-hsv97   1/1     Running   0          29m   172.17.0.7   minikube   <none>           <none>
-	pod/default-backend-597d886bcc-v5d82   1/1     Running   0          29m   172.17.0.9   minikube   <none>           <none>
+	NAME                                   READY   STATUS    RESTARTS   AGE     IP           NODE       NOMINATED NODE   READINESS GATES
+	pod/app1-5b66886c88-689xg              1/1     Running   0          9m      172.17.0.5   minikube   <none>           <none>
+	pod/app1-5b66886c88-nz72q              1/1     Running   0          8m44s   172.17.0.9   minikube   <none>           <none>
+	pod/app1-5b66886c88-zgt9q              1/1     Running   0          9m      172.17.0.3   minikube   <none>           <none>
+	pod/default-backend-597d886bcc-n55ms   1/1     Running   0          9m      172.17.0.6   minikube   <none>           <none>
+	pod/default-backend-597d886bcc-xm268   1/1     Running   0          9m      172.17.0.4   minikube   <none>           <none>
 
 	NAME                              TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)   AGE   SELECTOR
-	service/app1-service              ClusterIP   10.97.182.213   <none>        80/TCP    29m   app=app1
-	service/default-backend-service   ClusterIP   10.107.237.3    <none>        80/TCP    29m   app=default
-	service/default-http-backend      ClusterIP   10.108.49.139   <none>        80/TCP    97m   app=app1
+	service/app1-service              ClusterIP   10.106.3.93     <none>        80/TCP    9m    app=app1
+	service/default-backend-service   ClusterIP   10.107.253.41   <none>        80/TCP    9m    app=default
 
 	NAME                              READY   UP-TO-DATE   AVAILABLE   AGE   CONTAINERS   IMAGES                                     SELECTOR
-	deployment.apps/app1              2/2     2            2           29m   app1         d4cregistry/flask-app1:latest              app=app1
-	deployment.apps/default-backend   2/2     2            2           29m   default      d4cregistry/default-flask-backend:latest   app=default
+	deployment.apps/app1              3/3     3            3           9m    app1         d4cregistry/flask-app1:latest              app=app1
+	deployment.apps/default-backend   2/2     2            2           9m    default      d4cregistry/default-flask-backend:latest   app=default
 
 	NAME                                         DESIRED   CURRENT   READY   AGE   CONTAINERS   IMAGES                                     SELECTOR
-	replicaset.apps/app1-54b94f8dcf              2         2         2       29m   app1         d4cregistry/flask-app1:latest              app=app1,pod-template-hash=54b94f8dcf
-	replicaset.apps/default-backend-597d886bcc   2         2         2       29m   default      d4cregistry/default-flask-backend:latest   app=default,pod-template-hash=597d886bcc
+	replicaset.apps/app1-5b66886c88              3         3         3       9m    app1         d4cregistry/flask-app1:latest              app=app1,pod-template-hash=5b66886c88
+	replicaset.apps/default-backend-597d886bcc   2         2         2       9m    default      d4cregistry/default-flask-backend:latest   app=default,pod-template-hash=597d886bcc
+
+	NAME                                           REFERENCE         TARGETS   MINPODS   MAXPODS   REPLICAS   AGE
+	horizontalpodautoscaler.autoscaling/app1-hpa   Deployment/app1   1%/60%    3         10        3          9m
+
+	NAME                                    SCHEDULE     SUSPEND   ACTIVE   LAST SCHEDULE   AGE   CONTAINERS       IMAGES                   SELECTOR
+	cronjob.batch/app1-pod-scale-down-job   0 18 * * *   False     0        <none>          9m    bitnamikubectl   bitnami/kubectl:latest   <none>
+	cronjob.batch/app1-pod-scale-up-job     0 13 * * *   False     0        <none>          9m    bitnamikubectl   bitnami/kubectl:latest   <none>
+
+**NOTE:**<br/>
+- **`HorizontalPodAutoscaler[HPA]`** manages the replicas of the Deployment, and updated **`sepc.replicas`** field of Deployment by its own **`spec.minReplicas`**
+- **`CronJob`** will trigger HPA, and update **`spec.minReplicas`**
+- **`cronjob.batch/app1-pod-scale-up-job`** will  scale-up "app1" pods "At 13:00 UTC Everyday" due to peaks of usage during the day
+- **`cronjob.batch/app1-pod-scale-down-job`** will  scale-up "app1" pods "At 18:00 UTC Everyday" due to out of peaks of usage.
+- After triggred, HPA evaluates the metrics configuration to scale-up and scale-down pods
 
 
 $ kubectl get all -o wide -n=app2-ns
@@ -213,19 +262,33 @@ $ kubectl get all -o wide -n=app2-ns
 Output ||  <br/>
 
 
-	NAME                        READY   STATUS    RESTARTS   AGE    IP           NODE       NOMINATED NODE   READINESS GATES
-	pod/app2-669fcd9f48-qzgr5   1/1     Running   0          124m   172.17.0.6   minikube   <none>           <none>
-	pod/app2-669fcd9f48-zsg9j   1/1     Running   0          124m   172.17.0.5   minikube   <none>           <none>
+	NAME                        READY   STATUS    RESTARTS   AGE     IP            NODE       NOMINATED NODE   READINESS GATES
+	pod/app2-56c9ffb5bf-2r7qk   1/1     Running   0          8m20s   172.17.0.7    minikube   <none>           <none>
+	pod/app2-56c9ffb5bf-f5dkv   1/1     Running   0          8m20s   172.17.0.8    minikube   <none>           <none>
+	pod/app2-56c9ffb5bf-kxmlm   1/1     Running   0          8m5s    172.17.0.11   minikube   <none>           <none>
 
-	NAME                   TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)   AGE    SELECTOR
-	service/app2-service   ClusterIP   10.100.215.128   <none>        80/TCP    124m   app=app2
+	NAME                   TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)   AGE     SELECTOR
+	service/app2-service   ClusterIP   10.103.241.17   <none>        80/TCP    8m20s   app=app2
 
-	NAME                   READY   UP-TO-DATE   AVAILABLE   AGE    CONTAINERS   IMAGES                          SELECTOR
-	deployment.apps/app2   2/2     2            2           124m   app2         d4cregistry/flask-app2:latest   app=app2
+	NAME                   READY   UP-TO-DATE   AVAILABLE   AGE     CONTAINERS   IMAGES                          SELECTOR
+	deployment.apps/app2   3/3     3            3           8m20s   app2         d4cregistry/flask-app2:latest   app=app2
 
-	NAME                              DESIRED   CURRENT   READY   AGE    CONTAINERS   IMAGES                          SELECTOR
-	replicaset.apps/app2-669fcd9f48   2         2         2       124m   app2         d4cregistry/flask-app2:latest   app=app2,pod-template-hash=669fcd9f48
+	NAME                              DESIRED   CURRENT   READY   AGE     CONTAINERS   IMAGES                          SELECTOR
+	replicaset.apps/app2-56c9ffb5bf   3         3         3       8m20s   app2         d4cregistry/flask-app2:latest   app=app2,pod-template-hash=56c9ffb5bf
 
+	NAME                                           REFERENCE         TARGETS   MINPODS   MAXPODS   REPLICAS   AGE
+	horizontalpodautoscaler.autoscaling/app2-hpa   Deployment/app2   1%/60%    3         10        3          8m20s
+
+	NAME                                    SCHEDULE    SUSPEND   ACTIVE   LAST SCHEDULE   AGE     CONTAINERS       IMAGES                   SELECTOR
+	cronjob.batch/app2-pod-scale-down-job   0 0 * * 6   False     0        <none>          8m20s   bitnamikubectl   bitnami/kubectl:latest   <none>
+	cronjob.batch/app2-pod-scale-up-job     0 0 * * 1   False     0        <none>          8m20s   bitnamikubectl   bitnami/kubectl:latest   <none>
+
+**NOTE:**<br/>
+- **`HorizontalPodAutoscaler[HPA]`** manages the replicas of the Deployment, and updated **`sepc.replicas`** field of Deployment by its own **`spec.minReplicas`**
+- **`CronJob`** will trigger HPA, and update **`spec.minReplicas`**
+- **`cronjob.batch/app2-pod-scale-up-job`** will  scale-up "app2" pods "At 00:00 UTC on Monday" due to higher usage during the week versus the weekend
+- **`cronjob.batch/app2-pod-scale-down-job`** will  scale-down "app2" pods “At 00:00 UTC on Saturday” due to out of peaks of usage.
+- After triggred, HPA evaluates the metrics configuration to scale-up and scale-down pods
 
 $ minikube addons enable ingress
 
