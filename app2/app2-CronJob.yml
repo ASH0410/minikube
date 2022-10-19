@@ -1,0 +1,44 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: app2-pod-scale-up-job
+  namespace: app2-ns
+spec:
+  #app2 pods scale-up "At 00:00 UTC on Monday" due to higher usage during the week versus the weekend
+  schedule: "0 0 * * 1"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: app2-sa-cron-runner
+          containers:
+          - name: bitnamikubectl
+            image: bitnami/kubectl:latest
+            command:
+            - /bin/sh
+            - -c
+            - kubectl patch hpa app2-hpa --patch '{"spec":{"minReplicas":5}}' -n=app2-ns
+          restartPolicy: OnFailure
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: app2-pod-scale-down-job
+  namespace: app2-ns
+spec:
+  #app2 pods scale-down “At 00:00 UTC on Saturday” due to higher usage during the week versus the weekend
+  schedule: "0 0 * * 6"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: app2-sa-cron-runner
+          containers:
+          - name: bitnamikubectl
+            image: bitnami/kubectl:latest
+            command:
+            - /bin/sh
+            - -c
+            - kubectl patch hpa app2-hpa --patch '{"spec":{"minReplicas":3}}' -n=app2-ns
+          restartPolicy: OnFailure

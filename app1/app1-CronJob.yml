@@ -1,0 +1,44 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: app1-pod-scale-up-job
+  namespace: app1-ns
+spec:
+  #app1 pods scale-up at 13:00 UTC due to peaks of usage during the day
+  schedule: "0 13 * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: app1-sa-cron-runner
+          containers:
+          - name: bitnamikubectl
+            image: bitnami/kubectl:latest
+            command:
+            - /bin/sh
+            - -c
+            - kubectl patch hpa app1-hpa --patch '{"spec":{"minReplicas":5}}' -n=app1-ns
+          restartPolicy: OnFailure
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: app1-pod-scale-down-job
+  namespace: app1-ns
+spec:
+  #app1 pod scale-down at 18:00 UTC due to peaks of usage during the day
+  schedule: "0 18 * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: app1-sa-cron-runner
+          containers:
+          - name: bitnamikubectl
+            image: bitnami/kubectl:latest
+            command:
+            - /bin/sh
+            - -c
+            - kubectl patch hpa app1-hpa --patch '{"spec":{"minReplicas":3}}' -n=app1-ns
+          restartPolicy: OnFailure

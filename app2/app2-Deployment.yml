@@ -4,6 +4,7 @@ metadata:
   name: app2
   namespace: app2-ns
 spec:
+  #HorizontalPodAutoscaler manages the replicas field of the Deployment
   replicas: 2
   selector:
     matchLabels:
@@ -18,7 +19,7 @@ spec:
         image: d4cregistry/flask-app2:latest
         resources:
           limits:
-            memory: "128Mi"
-            cpu: "500m"
+            memory: "100Mi"
+            cpu: "200m"
         ports:
         - containerPort: 5000
